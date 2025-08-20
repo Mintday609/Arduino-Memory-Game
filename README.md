@@ -1,2 +1,2 @@
 # Arduino-Memory-Game
-heres a fun game to make when your bored very ez to make hope you have fun
+heres a fun game to make when your bored very ez to make hope you have fun btw only use arduino ide
