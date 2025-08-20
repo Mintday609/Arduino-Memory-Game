@@ -1,0 +1,76 @@
+#define NUM_LEDS 4
+int ledPins[NUM_LEDS] = {2, 3, 4, 5};
+int buttonPins[NUM_LEDS] = {6, 7, 8, 9};
+int buzzerPin = 10;
+
+int sequence[50];   // store up to 50 steps
+int sequenceLength = 1;
+
+void setup() {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    pinMode(ledPins[i], OUTPUT);
+    pinMode(buttonPins[i], INPUT_PULLUP); // button pressed = LOW
+  }
+  pinMode(buzzerPin, OUTPUT);
+  randomSeed(analogRead(0)); // randomize sequences
+}
+
+void loop() {
+  // Generate next random step
+  sequence[sequenceLength - 1] = random(NUM_LEDS);
+
+  // Show the sequence with LEDs + buzzer
+  for (int i = 0; i < sequenceLength; i++) {
+    int led = sequence[i];
+    digitalWrite(ledPins[led], HIGH);
+    tone(buzzerPin, 500 + led * 200); // unique tone per LED
+    delay(500);
+    digitalWrite(ledPins[led], LOW);
+    noTone(buzzerPin);
+    delay(300);
+  }
+
+  // Wait for player input
+  for (int i = 0; i < sequenceLength; i++) {
+    int pressed = waitForButton();
+    if (pressed != sequence[i]) {
+      gameOver();
+      return;
+    }
+  }
+
+  // If correct → increase difficulty
+  sequenceLength++;
+  delay(1000);
+}
+
+// --- Helper functions ---
+
+int waitForButton() {
+  while (true) {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      if (digitalRead(buttonPins[i]) == LOW) { // button pressed
+        digitalWrite(ledPins[i], HIGH);
+        tone(buzzerPin, 500 + i * 200);
+        delay(300);
+        digitalWrite(ledPins[i], LOW);
+        noTone(buzzerPin);
+        delay(200);
+        return i; // return which button was pressed
+      }
+    }
+  }
+}
+
+void gameOver() {
+  // Flash all LEDs + buzzer
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < NUM_LEDS; j++) digitalWrite(ledPins[j], HIGH);
+    tone(buzzerPin, 200);
+    delay(300);
+    for (int j = 0; j < NUM_LEDS; j++) digitalWrite(ledPins[j], LOW);
+    noTone(buzzerPin);
+    delay(300);
+  }
+  sequenceLength = 1; // reset game
+}
